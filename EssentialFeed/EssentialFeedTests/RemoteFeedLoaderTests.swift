@@ -19,37 +19,40 @@ protocol HTTPClient {
      requestedURL = URL(string: url)
      } */
     
-    func get(from url :String)
+    func get(from url :URL)
     
 }
 
 class HTTPClientSpy : HTTPClient {
     
     var requestedURL: URL?
-     func get(from url :String){
-        requestedURL = URL(string: url)
+     func get(from url :URL){
+        requestedURL =  url
     }
 }
 
 class RemoteFeedLoader{
     
     var client : HTTPClient
-    init(client: HTTPClient) {
+    var url : URL
+    init(url :URL , client: HTTPClient) {
         self.client = client
+        self.url = url
     }
     
     func load(){
       //  HTTPClient.shared.get(from: "https://www.apple.com") -> This way we are allocating space to memory
         //instaed of this we can inject the URL
-        client.get(from: "https://www.apple.com")
+        client.get(from: url)
     }
 }
  class RemoteFeedLoaderTests: XCTestCase {
 
     func test_init_doesNotRequestDataFromURL(){
-        
+        let url = URL(string: "https://a-url.com")!
+
         let client = HTTPClientSpy()
-        _ = RemoteFeedLoader(client: client)
+        _ = RemoteFeedLoader(url: url, client: client)
        // let client = HTTPClient.shared -> As Spy class created use that
        
         //  HTTPClient.shared = client ->  as we inject client as proper remove this line
@@ -57,11 +60,11 @@ class RemoteFeedLoader{
     }
      
      func test_init_load_RequestDataFromURL(){
-         
+         let url = URL(string: "https://a-url.com")!
          let client = HTTPClientSpy()
        //  HTTPClient.shared = client ->  as we inject client as proper remove this line
-         let sut = RemoteFeedLoader(client: client)
+         let sut = RemoteFeedLoader(url: url  , client: client)
          sut.load()
-         XCTAssertNotNil(client.requestedURL)
+         XCTAssertEqual(url , client.requestedURL)
      }
 }
